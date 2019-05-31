@@ -39,57 +39,82 @@ void delay_ms(u32 time){
 //////////////////////////////所有GPIO和时钟配置//////////////////
 void GPIO_Initial(void){
 	//clock
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_AFIO | RCC_APB2Periph_GPIOB,ENABLE);//所有I\O口时钟和SPI1
-	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3| RCC_APB1Periph_SPI2,ENABLE);//I2C是模拟的
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_GPIOB 
+	| RCC_APB2Periph_AFIO | RCC_APB2Periph_SPI1 | RCC_APB2Periph_USART1,ENABLE);//所有I\O口时钟和SPI1
+	
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3| RCC_APB1Periph_SPI2,ENABLE);
 
 	GPIO_InitTypeDef gpio_init;
 	
 	GPIO_PinRemapConfig(GPIO_Remap_SWJ_JTAGDisable,ENABLE);//禁用JTAG
 	
-	//SPI-SCK,SPI-MOSI
+	//USART1
+	gpio_init.GPIO_Mode=GPIO_Mode_AF_PP;//复用推挽输出
+	gpio_init.GPIO_Pin=GPIO_Pin_9;
+	gpio_init.GPIO_Speed=GPIO_Speed_50MHz;
+	GPIO_Init(GPIOA,&gpio_init);
+	
+	gpio_init.GPIO_Mode=GPIO_Mode_IN_FLOATING;//浮空输入
+	gpio_init.GPIO_Pin=GPIO_Pin_10;
+	gpio_init.GPIO_Speed=GPIO_Speed_50MHz;
+	GPIO_Init(GPIOA,&gpio_init);
 
-	gpio_init.GPIO_Pin =GPIO_Pin_13 | GPIO_Pin_15;//SCK MOSI
+	//SPI1
+	//连接cc1101和2.4g模块
+	gpio_init.GPIO_Pin =GPIO_Pin_5 | GPIO_Pin_7 | GPIO_Pin_2 | GPIO_Pin_3;//SCK MOSI Sub-NS 2.4G-NS
+	gpio_init.GPIO_Mode = GPIO_Mode_AF_PP;//复用推挽输出
+	gpio_init.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_Init(GPIOA, &gpio_init);
+	GPIO_ResetBits(GPIOA,GPIO_Pin_5);//时钟空闲是低的
+	GPIO_SetBits(GPIOA,GPIO_Pin_2 | GPIO_Pin_3);//片选脚空闲是高的
+
+	gpio_init.GPIO_Pin = GPIO_Pin_6;//MISO
+	gpio_init.GPIO_Mode = GPIO_Mode_IN_FLOATING;//浮空输入
+	gpio_init.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_Init(GPIOA, &gpio_init);
+
+	//SPI2
+	//连接NFC模块
+	gpio_init.GPIO_Pin =GPIO_Pin_13 | GPIO_Pin_15 | GPIO_Pin_8;//SCK MOSI NS
 	gpio_init.GPIO_Mode = GPIO_Mode_AF_PP;//复用推挽输出
 	gpio_init.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_Init(GPIOB, &gpio_init);
 	GPIO_ResetBits(GPIOB,GPIO_Pin_13);//时钟空闲是低的
+	GPIO_SetBits(GPIOB,GPIO_Pin_8);//片选脚空闲是高的
 
-	//GD02,SPI-MISO
-	gpio_init.GPIO_Pin = GPIO_Pin_1 | GPIO_Pin_14;
+	gpio_init.GPIO_Pin = GPIO_Pin_14;//MISO
 	gpio_init.GPIO_Mode = GPIO_Mode_IN_FLOATING;//浮空输入
 	gpio_init.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_Init(GPIOB, &gpio_init);
 
-	//GDO0,I2C-SCL,I2C-SDA,SPI-CC1101-CS
-
-	gpio_init.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_10 | GPIO_Pin_11 | GPIO_Pin_12;//SCL SDA SPI-CS
+	//I2C-OLED
+	gpio_init.GPIO_Pin = GPIO_Pin_6 | GPIO_Pin_7;//SCL SDA
 	gpio_init.GPIO_Mode = GPIO_Mode_Out_PP;//推挽输出
 	gpio_init.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_Init(GPIOB, &gpio_init);
-	GPIO_SetBits(GPIOB,GPIO_Pin_12);//CS空闲时高的
 
-	//右，左，下，上，红外
-	
-	gpio_init.GPIO_Pin = GPIO_Pin_3 | GPIO_Pin_4
-						| GPIO_Pin_5 | GPIO_Pin_6 | GPIO_Pin_7;
+	//I2C-EEPROM
+	//使用模拟的i2c接口所以不需要使能i2c时钟
+	gpio_init.GPIO_Pin = GPIO_Pin_10 | GPIO_Pin_11;//SCL SDA
+	gpio_init.GPIO_Mode = GPIO_Mode_Out_PP;//推挽输出
+	gpio_init.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_Init(GPIOB, &gpio_init);
+
+	//IR KEY
+	//红外输入和多功能按键
+	gpio_init.GPIO_Pin = GPIO_Pin_9 | GPIO_Pin_5;
 	gpio_init.GPIO_Mode = GPIO_Mode_IPU;//上拉输入
 	gpio_init.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_Init(GPIOB, &gpio_init);
-	
-	//中
-	gpio_init.GPIO_Pin = GPIO_Pin_15;
-	gpio_init.GPIO_Mode = GPIO_Mode_IPU;//上拉输入
+
+	//GPIO
+	//cc1101和2.4g模块的通用引脚
+	gpio_init.GPIO_Pin = GPIO_Pin_11 | GPIO_Pin_12 | GPIO_Pin_1;//GDO0,GDO2,2.4G
+	gpio_init.GPIO_Mode = GPIO_Mode_IN_FLOATING;//浮空输入
 	gpio_init.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_Init(GPIOA, &gpio_init);
-	
-	//RGB
-	gpio_init.GPIO_Pin = GPIO_Pin_1 | GPIO_Pin_2 | GPIO_Pin_3 | GPIO_Pin_7 | GPIO_Pin_8;
-	gpio_init.GPIO_Mode = GPIO_Mode_Out_PP;//推挽输出
-	gpio_init.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_Init(GPIOA, &gpio_init);
-	GPIO_SetBits(GPIOA,GPIO_Pin_1 | GPIO_Pin_2 | GPIO_Pin_3);
 }
-//////////////////////////////SPI2配置////////////////////////////
+//////////////////////////////SPI配置/////////////////////////////
 void SPI_Initial(void){
 	SPI_InitTypeDef spi_init;
 
@@ -103,28 +128,17 @@ void SPI_Initial(void){
 	spi_init.SPI_FirstBit = SPI_FirstBit_MSB;//左对齐
 	spi_init.SPI_CRCPolynomial = 7;//
 	SPI_Init(SPI2, &spi_init);
+	SPI_Init(SPI1, &spi_init);
 
 	SPI_Cmd(SPI2, ENABLE);
+	SPI_Cmd(SPI1, ENABLE);
 }
 
 //////////////////////////////串口配置////////////////////////////
-void usart_init(void){
-	GPIO_InitTypeDef gpio_init;
+void USART_init(void){
 	USART_InitTypeDef usart_init;
-	
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1,ENABLE);//GPIOA已经使能过了
-	
-	gpio_init.GPIO_Mode=GPIO_Mode_AF_PP;//复用推挽输出
-	gpio_init.GPIO_Pin=GPIO_Pin_9;
-	gpio_init.GPIO_Speed=GPIO_Speed_50MHz;
-	GPIO_Init(GPIOA,&gpio_init);
-	
-	gpio_init.GPIO_Mode=GPIO_Mode_IN_FLOATING;//浮空输入
-	gpio_init.GPIO_Pin=GPIO_Pin_10;
-	gpio_init.GPIO_Speed=GPIO_Speed_50MHz;
-	GPIO_Init(GPIOA,&gpio_init);
-	
-	usart_init.USART_BaudRate=9600;//波特率
+
+	usart_init.USART_BaudRate=115200;//波特率
 	usart_init.USART_HardwareFlowControl=USART_HardwareFlowControl_None;//硬件流控制
 	usart_init.USART_Mode=USART_Mode_Rx | USART_Mode_Tx;//模式
 	usart_init.USART_Parity=USART_Parity_No;//不使用校验
@@ -160,7 +174,7 @@ void TIM_init(void){
 	//定时器配置
 	tim_init.TIM_Prescaler=35;//36分频，1MHz
 	tim_init.TIM_CounterMode=TIM_CounterMode_Up;//向上计数
-	tim_init.TIM_Period =1000;//1ms
+	tim_init.TIM_Period =10000;//10ms
 	tim_init.TIM_ClockDivision =0;
 	TIM_TimeBaseInit(TIM3,&tim_init);
 	TIM_ITConfig(TIM3,TIM_IT_Update|TIM_IT_Trigger,ENABLE);
@@ -188,18 +202,44 @@ void TIM3_IRQHandler(void){
 
 
 /////////////////////////////SPI发送一个字节//////////////////////
-u8 SPI_ExchangeByte(u8 data){
+u8 SPI1_ExchangeByte(u8 data){
     u8 retry=0;
+	
 	while (SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_TXE) == RESET){//发送缓存空标志位
 		retry++;
 		if(retry>200) break;//先等着，要是好久都等不到就直接发
-	}			  
-	SPI_I2S_SendData(SPI2, data); //通过外设SPIx发送一个数据
+	}
+
+	SPI_I2S_SendData(SPI1, data); //通过外设SPIx发送一个数据
+	
 	retry=0;
+	
 	while (SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_RXNE) == RESET){//接受缓存非空标志位
 		retry++;
 		if(retry>200) break;
 	}
+	
+	return SPI_I2S_ReceiveData(SPI1); //返回通过SPIx最近接收的数据	
+}
+
+/////////////////////////////SPI发送一个字节//////////////////////
+u8 SPI2_ExchangeByte(u8 data){
+    u8 retry=0;
+	
+	while (SPI_I2S_GetFlagStatus(SPI2, SPI_I2S_FLAG_TXE) == RESET){//发送缓存空标志位
+		retry++;
+		if(retry>200) break;//先等着，要是好久都等不到就直接发
+	}
+
+	SPI_I2S_SendData(SPI2, data); //通过外设SPIx发送一个数据
+	
+	retry=0;
+	
+	while (SPI_I2S_GetFlagStatus(SPI2, SPI_I2S_FLAG_RXNE) == RESET){//接受缓存非空标志位
+		retry++;
+		if(retry>200) break;
+	}
+	
 	return SPI_I2S_ReceiveData(SPI2); //返回通过SPIx最近接收的数据	
 }
 
@@ -401,7 +441,7 @@ u32 IR_scan(void){
 	return 0;
 }
 
-//对输入的第一个数组里的字节全部反转并存到第二个数组
+//对输入的第一个数组里的字节全部反转并存到第二个数组,因为取模出来的数据是反的
 void OLED_Reversal(u8 *copy_buffer,u8 *paste_buffer,u16 size){
 	u16 i;
 	u8 m,n;
@@ -418,7 +458,7 @@ void OLED_printchar(u8 x,u8 y,u8 chr){
 	u16 coordinate=y*128+x;
 	u8 i,character=chr-' ';
 	for(i=0;i<6;i++)
-		display_cache[coordinate+i]=font6x8[character][i];
+		display_cache[coordinate+i]=font[character][i];
 }
 void OLED_printstring(u8 x,u8 y,u8 *chr,u8 size){
 	u8 i=0,x1=x,y1=y;

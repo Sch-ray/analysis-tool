@@ -82,7 +82,7 @@ void CC1101Reset( void );
 /*向指定寄存器写数据*/
 void CC1101WriteMultiReg( u8 addr, u8 *buff, u8 size );
 
-extern u8 SPI_ExchangeByte(u8 input); // 通过SPI进行数据交换
+extern u8 SPI1_ExchangeByte(u8 input); // 通过SPI进行数据交换
 
 /*
 ================================================================================
@@ -115,8 +115,8 @@ u8 CC1101ReadReg( u8 addr )
 {
     u8 i;
     CC_CSN_LOW( );//拉低CS开始传输
-    SPI_ExchangeByte( addr | READ_SINGLE);//最高位置一并发送数据，调用：stm的spi发送函数
-    i = SPI_ExchangeByte( 0xFF );//此时要从从机读取数据，但是为了避免没必要的误操作所以使用0xFF
+    SPI1_ExchangeByte( addr | READ_SINGLE);//最高位置一并发送数据，调用：stm的spi发送函数
+    i = SPI1_ExchangeByte( 0xFF );//此时要从从机读取数据，但是为了避免没必要的误操作所以使用0xFF
     CC_CSN_HIGH( );//拉高CS停止传输
     return i;
 }
@@ -134,11 +134,11 @@ void CC1101ReadMultiReg( u8 addr, u8 *buff, u8 size )
 {
     u8 i, j;
     CC_CSN_LOW( );
-    SPI_ExchangeByte( addr | READ_BURST);
+    SPI1_ExchangeByte( addr | READ_BURST);
     for( i = 0; i < size; i ++ )
     {
         for( j = 0; j < 20; j ++ );
-        *( buff + i ) = SPI_ExchangeByte( 0xFF );
+        *( buff + i ) = SPI1_ExchangeByte( 0xFF );
     }
     CC_CSN_HIGH( );
 }
@@ -154,8 +154,8 @@ u8 CC1101ReadStatus( u8 addr )
 {
     u8 i;
     CC_CSN_LOW( );
-    SPI_ExchangeByte( addr | READ_BURST);
-    i = SPI_ExchangeByte( 0xFF );
+    SPI1_ExchangeByte( addr | READ_BURST);
+    i = SPI1_ExchangeByte( 0xFF );
     CC_CSN_HIGH( );
     return i;
 }
@@ -192,8 +192,8 @@ OUTPUT   : None
 void CC1101WriteReg( u8 addr, u8 value )
 {
     CC_CSN_LOW( );
-    SPI_ExchangeByte( addr );
-    SPI_ExchangeByte( value );
+    SPI1_ExchangeByte( addr );
+    SPI1_ExchangeByte( value );
     CC_CSN_HIGH( );
 }
 /*
@@ -210,10 +210,10 @@ void CC1101WriteMultiReg( u8 addr, u8 *buff, u8 size )
 {
     u8 i;
     CC_CSN_LOW( );
-    SPI_ExchangeByte( addr | WRITE_BURST );
+    SPI1_ExchangeByte( addr | WRITE_BURST );
     for( i = 0; i < size; i ++ )
     {
-        SPI_ExchangeByte( *( buff + i ) );
+        SPI1_ExchangeByte( *( buff + i ) );
     }
     CC_CSN_HIGH( );
 }
@@ -228,7 +228,7 @@ OUTPUT   : None
 void CC1101WriteCmd( u8 command )
 {
     CC_CSN_LOW( );
-    SPI_ExchangeByte( command );
+    SPI1_ExchangeByte( command );
     CC_CSN_HIGH( );
 }
 /*

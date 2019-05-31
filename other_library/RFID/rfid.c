@@ -39,21 +39,21 @@ void RC522_Handel(void){
 }
 
 void RC522_Init ( void ){
-    PcdReset();//复位
+    PcdReset ();//复位
 	M500PcdConfigISOType ( 'A' );//设置工作方式
 }
 
 void SPI_RC522_SendByte ( u8 byte ){
-    GPIO_ResetBits (GPIOA,GPIO_Pin_8);
-	SPI_ExchangeByte(byte);
-    GPIO_SetBits (GPIOA,GPIO_Pin_8);
+    GPIO_ResetBits (GPIOB,GPIO_Pin_8);
+  	SPI2_ExchangeByte(byte);
+    GPIO_SetBits (GPIOB,GPIO_Pin_8);
 }
 
 u8 SPI_RC522_ReadByte ( void ){
 	u8 SPI_Data;
-    GPIO_ResetBits (GPIOA,GPIO_Pin_8);
-    SPI_Data=SPI_ExchangeByte(0xFF);
-    GPIO_SetBits (GPIOA,GPIO_Pin_8);
+    GPIO_ResetBits (GPIOB,GPIO_Pin_8);
+    SPI_Data=SPI2_ExchangeByte(0xFF);
+    GPIO_SetBits (GPIOB,GPIO_Pin_8);
 
 	return SPI_Data;
 }
@@ -61,20 +61,20 @@ u8 SPI_RC522_ReadByte ( void ){
 u8 ReadRawRC ( u8 ucAddress ){//读寄存器
 	u8 ucAddr, ucReturn;	
 	ucAddr = ( ( ucAddress << 1 ) & 0x7E ) | 0x80;
-    GPIO_ResetBits (GPIOA,GPIO_Pin_8);
-	SPI_ExchangeByte(ucAddr);
-	ucReturn = SPI_ExchangeByte(0XFF);
-    GPIO_SetBits (GPIOA,GPIO_Pin_8);
+    GPIO_ResetBits (GPIOB,GPIO_Pin_8);
+	SPI2_ExchangeByte(ucAddr);
+	ucReturn = SPI2_ExchangeByte(0XFF);
+    GPIO_SetBits (GPIOB,GPIO_Pin_8);
 	return ucReturn;
 }
 
 void WriteRawRC ( u8 ucAddress, u8 ucValue ){//写寄存器
 	u8 ucAddr;
 	ucAddr = ( ucAddress << 1 ) & 0x7E;
-    GPIO_ResetBits (GPIOA,GPIO_Pin_8);
-    SPI_ExchangeByte(ucAddr);
-    SPI_ExchangeByte(ucValue);
-    GPIO_SetBits (GPIOA,GPIO_Pin_8);
+    GPIO_ResetBits (GPIOB,GPIO_Pin_8);
+    SPI2_ExchangeByte(ucAddr);
+    SPI2_ExchangeByte(ucValue);
+    GPIO_SetBits (GPIOB,GPIO_Pin_8);
 }
 
 void SetBitMask ( u8 ucReg, u8 ucMask )//对RC522寄存器置位
@@ -267,9 +267,7 @@ char PcdComMF522 ( u8 ucCommand, u8 * pInData, u8 ucInLenByte, u8 * pOutData, u3
 
 }
 
-
 /*
- * 函数名：PcdRequest
  * 描述  ：寻卡
  * 输入  ：ucReq_code，寻卡方式
  *                     = 0x52，寻感应区内所有符合14443A标准的卡

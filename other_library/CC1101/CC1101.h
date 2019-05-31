@@ -3,14 +3,14 @@
 
 #include "CC1101_REG.h"
 
-#define PORT_CC_CSN     GPIOB
-#define PIN_CC_CSN      GPIO_Pin_12
+#define PORT_CC_CSN     GPIOA
+#define PIN_CC_CSN      GPIO_Pin_2
 
-#define PORT_CC_IRQ     GPIOB//将GDO0配置为了IRQ中断
-#define PIN_CC_IRQ      GPIO_Pin_0
+#define PORT_CC_IRQ     GPIOA//将GDO0配置为了IRQ中断
+#define PIN_CC_IRQ      GPIO_Pin_11
 
-#define PORT_CC_GDO2    GPIOB
-#define PIN_CC_GDO2     GPIO_Pin_1
+#define PORT_CC_GDO2    GPIOA
+#define PIN_CC_GDO2     GPIO_Pin_12
 
 #define CC_CSN_LOW()    GPIO_ResetBits(PORT_CC_CSN, PIN_CC_CSN);
 #define CC_CSN_HIGH()   GPIO_SetBits(PORT_CC_CSN, PIN_CC_CSN)
